@@ -58,13 +58,14 @@ const trezorCryptoURL = './js/trezor-crypto-dist.js';
 
 export const create = (urlsOrCurrency: Array<string> | string, coinInfoUrl: string): Promise<void> => {
     let backend: TrezorBitcoreBackend; 
-
+    console.log(urlsOrCurrency,coinInfoUrl);
     if (typeof urlsOrCurrency === 'string') {
         // get bitcore urls from coins.json using currency name/shortcut
         return loadCoinInfo(coinInfoUrl).then( (coins:Array<CoinInfo>) => {
             const urls: Array<string> = getBitcoreUrls(urlsOrCurrency);
+            console.log('urls',urls);
             if (!urls || urls.length < 1) {
-                throw new Error('Bitcore urls not found for ' + urlsOrCurrency);
+                throw new Error('Bitcore urls not found for me' + urlsOrCurrency);
             }
             backend = new TrezorBitcoreBackend({ bitcoreURL: urls });
             return waitForCoinInfo(backend.blockchain, coinInfoUrl).then(ci => {

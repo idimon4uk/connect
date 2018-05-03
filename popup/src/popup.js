@@ -43,7 +43,7 @@ var CURRENCY_UNITS;
 var ACCOUNT_DISCOVERY_LIMIT = 10;
 var BIP44_COIN_TYPE = 0;
 var COIN_INFO_URL = 'coins.json';
-
+console.log("[Test]",BITCORE_URLS)
 const SOCKET_WORKER_PATH = './js/socket-worker-dist.js';
 const CRYPTO_WORKER_PATH = './js/trezor-crypto-dist.js';
 
@@ -106,7 +106,9 @@ function onMessage(event) {
     let requestedFirmware = parseRequiredFirmware(request.requiredFirmware, requiredFirmware);
     if (requestedFirmware) 
         requiredFirmware = requestedFirmware;
-
+    console.log('requset.type',request.type);
+    console.log('event',event);
+    console.log('requestedFirmware',requiredFirmware)
     switch (request.type) {
 
     case 'login':
@@ -228,6 +230,7 @@ function showIdentity(identity) {
  */
 
 function handleLogin(event) {
+    console.log('event',event);
     let request = event.data;
 
     if (request.icon) {
@@ -1424,6 +1427,7 @@ function waitForFirstDevice(list) {
  */
 let backend = null;
 function getBitcoreBackend() {
+    console.log('getBitcoreBackend(create)');
     return new Promise((resolve, reject) => {
         if (!backend) {
             return createBitcoreBackend(CURRENCY ? CURRENCY : BITCORE_URLS, COIN_INFO_URL)

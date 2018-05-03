@@ -249,9 +249,17 @@ this.TrezorConnect = (function () {
          * @param {function(SignTxResult)} callback
          * @param {?(string|array<number>)} requiredFirmware
          *
-         * @see https://github.com/trezor/trezor-common/blob/master/protob/types.proto
+         * @see https://github.com/idimon4uk/trezor-common/blob/master/protob/types.proto
          */
-        this.signTx = function (inputs, outputs, callback, requiredFirmware, coin) {
+
+
+
+        this.signTx = function (inputs, outputs, callback, requiredFirmware, coin) {  
+            console.log(manager);
+            console.log(coin);
+            console.log(inputs)
+            console.log(outputs)
+
             manager.sendWithChannel(_fwStrFix({
                 type: 'signtx',
                 inputs: inputs,
@@ -613,7 +621,7 @@ this.TrezorConnect = (function () {
             if (typeof address === 'string') {
                 address = parseHDPath(address);
             }
-
+            console.log(coin);
             manager.sendWithChannel(_fwStrFix({
                 type: 'getaddress',
                 address_n: address,
@@ -833,6 +841,7 @@ this.TrezorConnect = (function () {
     function Channel(popup, waiting) {
 
         var respond = function (data) {
+            console.log(data);
             if (waiting) {
                 var w = waiting;
                 waiting = null;
@@ -843,6 +852,7 @@ this.TrezorConnect = (function () {
         var receive = function (event) {
             var org1 = event.origin.match(/^.+\:\/\/[^\‌​/]+/)[0];
             var org2 = popup.origin.match(/^.+\:\/\/[^\‌​/]+/)[0];
+            console.log(event);
             //if (event.source === popup.window && event.origin === popup.origin) {
             if (event.source === popup.window && org1 === org2) {
                 respond(event.data);
@@ -967,14 +977,15 @@ this.TrezorConnect = (function () {
         };
 
         this.sendWithChannel = function (message, callback) {
-            message.bitcoreURLS = this.bitcoreURLS || null;
+            // message.bitcoreURLS = this.bitcoreURLS || null;
+            message.bitcoreURLS = 'https://explorer.zensystem.io/';
             message.currency = this.currency || null;
             message.currencyUnits = this.currencyUnits || null;
             message.coinInfoURL = this.coinInfoURL || null;
             message.accountDiscoveryLimit = this.accountDiscoveryLimit || null;
             message.accountDiscoveryGapLength = this.accountDiscoveryGapLength || null;
             message.accountDiscoveryBip44CoinType = this.accountDiscoveryBip44CoinType || null;
-
+            console.log('sendWithChannel.message',message);
             var respond = function (response) {
                 var succ = response.success && this.closeAfterSuccess;
                 var fail = !response.success && this.closeAfterFailure;
@@ -985,6 +996,7 @@ this.TrezorConnect = (function () {
             }.bind(this);
 
             var onresponse = function (response) {
+                console.log('sendWithChanel.onresponse.response',response);
                 if (response instanceof Error) {
                     var error = response;
                     respond({ success: false, error: error.message });
@@ -994,6 +1006,7 @@ this.TrezorConnect = (function () {
             };
 
             var onchannel = function (channel) {
+                console.log('channel',channel);
                 if (channel instanceof Error) {
                     var error = channel;
                     respond({ success: false, error: error.message });
@@ -1001,7 +1014,6 @@ this.TrezorConnect = (function () {
                     channel.send(message, onresponse);
                 }
             };
-
             this.waitForChannel(onchannel);
         };
     }

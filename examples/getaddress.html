@@ -20,6 +20,7 @@
         if (coin === 'Bitcoin Cash') coin = 'Bcash';
 
         TrezorConnect.getAddress(path, coin, segwit, function (response) {
+            console.log('coin',coin);
             console.log("TrezorConnect.getAddress response", response);
             document.getElementById("response").innerHTML = JSON.stringify(response, undefined, 2);
         });
@@ -57,7 +58,8 @@
           "Zcash":         "m/44'/133'/0'/0/0",
           "Testnet":       "m/49'/1'/0'/0/0",
           "Namecoin":      "m/44'/7'/0'/0/0",
-          "Zcash testnet": "m/44'/133'/0'/0/0",
+          "Zcash testnet": "m/44'/1'/0'/0/0",
+          "Zencash":       "m/44'/121'/0'/0/0",
         }
         var checkbox = document.getElementById('segwit');
         if (coin === 'Testnet' || coin === 'Litecoin' || coin === 'Bitcoin') {
@@ -90,7 +92,8 @@
             <option>Zcash</option>
             <option>Testnet</option>
             <option>Namecoin</option>
-            <option>Zcash testnet</option>
+            <option>Zcash testnet2</option>
+            <option>Zencash</option>
         </select>
         <input type="text" id="address" name="address" value="m/49'/0'/0'/0/0" style="display: inline-block;" />
         <input type="checkbox" id="segwit" onchange="handleSegwitChange(this)" checked /> Segwit

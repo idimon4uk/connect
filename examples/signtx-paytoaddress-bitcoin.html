@@ -3,23 +3,58 @@
   <head>
     <title>TREZOR Sign Transaction Test</title>
     <script>
-
     // this example requires a device loaded with seed:
     // alcohol woman abuse must during monitor noble actual mixed trade anger aisle
-
     // Python tests:
     // https://github.com/trezor/python-trezor/blob/master/tests/device_tests/test_msg_signtx.py
 
+    function flipBytes(byte_array) {
+         size = byte_array.length;
+         if (size%2 == 1) {
+             buffer = byte_array[size-1]
+             byte_array = byte_array.substring(0,size-1)+'0'+buffer
+             size = byte_array.length;
+         }
+         res = ''
+         for (i=size-1;i>0;i-=2){
+             res += byte_array.substring(i-1,i+1);
+         }
+         return res;
+     }
+
     function trezorSignTx(testId) {
+
+        url = 'https://explorer.zensystem.io/insight-api-zen/'
+        tx_request = 'tx/'
+        block_request = 'blocks/';
+        prev_index = 0
+        tx_hash = '6b72d99239f092e9c0c0009d4e0efcf3db9a6b0e8d40fb72ca18c6b098ac1833';
+
+
+
+
+        var xmlHttpTx = new XMLHttpRequest();
+        xmlHttpTx.open( "GET", (url+tx_request+tx_hash), false ); // false for synchronous request
+        xmlHttpTx.send( null );
+        // console.log(JSON.parse(xmlHttpTx.responseText)['vout'][prev_index]['scriptPubKey']['hex']);
+        prev_input_script = JSON.parse(xmlHttpTx.responseText)['vout'][prev_index]['scriptPubKey']['hex'];
+
+
+        var xmlHttpBlock = new XMLHttpRequest();
+        xmlHttpBlock.open( "GET", (url+block_request), false ); // false for synchronous request
+        xmlHttpBlock.send( null );
+        block = JSON.parse(xmlHttpBlock.responseText)['blocks'][199]
+        block_hash = flipBytes(block['hash']);
+        block_height = flipBytes(parseInt(block['height']).toString(16))
+        console.log(block_hash,block_height)
 
         // legacy input
         var inp1 = {
             //address_n: [44 | 0x80000000, 0 | 0x80000000, 0 | 0x80000000, 0, 0],
             address_n: [0],
             prev_index: 1,
-            prev_hash: "a450d5a76d4f0222296748b64b420061dee402097e759dd687c60d37e81061b9"
+            prev_hash: "40a8cc8cb2c4b137ff38470d14922b13cab321338564c14852c63f7ebb3ead30"
         };
-
         // segwit input
         var inp2 = {
             address_n: [49 | 0x80000000, 1 | 0x80000000, 0 | 0x80000000, 1, 0],
@@ -28,12 +63,13 @@
             prev_hash: "20912f98ea3ed849042efed0fdac8cb4fc301961c5988cba56902d8ffb61c337",
             script_type: "SPENDP2SHWITNESS"
         };
-
         // legacy outputs
         var out1 = {
-            address: 'znhyGnfCgxd9NyUUDkEwTsBFc4dyYaogYJh',
-            amount: 17000,
-            script_type: 'PAYTOADDRESS'
+            address: 'n1RoRWhnu7rccQM1X2RaTBBfhRU2bWmLjn',
+            amount: 135607470,
+            script_type: 'PAYTOADDRESS',
+            block_hash: block_hash,
+            block_height:block_height
         }
         // 
         var out2 = {
@@ -42,9 +78,6 @@
             amount: 80000,
             script_type: 'PAYTOADDRESS'
         }
-
-
-
         // segwit outputs
         var out3 = {
             address: "mhRx1CeVfaayqRwq5zgRQmD7W5aWBfD5mC",
@@ -56,20 +89,19 @@
             script_type: "PAYTOP2SHWITNESS",
             amount: 123456789 - 11000 - 12300000,
         }
-
         var inputs, outputs;
         switch(testId) {
             case 0: // One output external
                 inputs = [ inp1 ];
                 outputs = [ out1 ];
-                TrezorConnect.setCurrency('btc');
+                TrezorConnect.setCurrency('testnet');
             break;
             case 1: // First output external, second output internal
                 var cloneOfOut1 = JSON.parse(JSON.stringify(out1));
                 cloneOfOut1.amount = out1.amount - out2.amount;
                 inputs = [ inp1 ];
                 outputs = [ cloneOfOut1, out2 ];
-                TrezorConnect.setCurrency('zen'); //'btc'
+                TrezorConnect.setCurrency('btc');
             break;
             case 2: // Segwit input, Segwit change output + external output
                 inputs = [ inp2 ];
@@ -79,7 +111,6 @@
         }
         
         TrezorConnect.signTx(inputs, outputs, function (response) {
-            console.log(response);
             if (response.success) {
                 console.log('Serialized TX:', response.serialized_tx); // tx in hex
                 console.log('Signatures:', response.signatures); // array of signatures, in hex
@@ -89,7 +120,6 @@
             document.getElementById("response").innerHTML = JSON.stringify(response, undefined, 2);
         });
     }
-
     </script>
   </head>
   <body>

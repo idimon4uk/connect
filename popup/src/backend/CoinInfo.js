@@ -126,11 +126,13 @@ export const loadCoinInfo = (coinInfoUrl: string): Promise<Array<CoinInfo>> => {
 export const getBitcoreUrls = (currency: string): Array<string> => {
     let bitcore: Array<string> = [];
     let lower: string = currency.toLowerCase();
+    console.log('lover',lover);
     coins.map((coin: CoinInfo) => {
         if (coin.name.toLowerCase() === lower|| coin.shortcut.toLowerCase() === lower || coin.label.toLowerCase() === lower) {
             bitcore = bitcore.concat(coin.bitcore);
         }
     });
+    console.log(bitcore);
     return bitcore;
 }
 

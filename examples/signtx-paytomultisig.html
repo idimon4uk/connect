@@ -4,6 +4,19 @@
     <title>TREZOR Sign Transaction Test</title>
     <script>
 
+     function flipBytes(byte_array) {
+         size = byte_array.length;
+         if (size%2 == 1) {
+             buffer = byte_array[size-1]
+             byte_array = byte_array.substring(0,size-1)+'0'+buffer
+             size = byte_array.length;
+         }
+         res = ''
+         for (i=size-1;i>0;i-=2){
+             res += byte_array.substring(i-1,i+1);
+         }
+         return res;
+     }
      function trezorSignTx(testId) {
         // this example requires a device loaded with seed:
         // alcohol woman abuse must during monitor noble actual mixed trade anger aisle
@@ -13,7 +26,32 @@
         // https://github.com/trezor/python-trezor/blob/master/tests/device_tests/test_multisig.py
         var ext1 = 'xpub6E2LkiC2h7icfcjXPFDmwufDRaaTjTRYcS2nD7eGQeFx1WwZxxvCya5GefiJND6ddJnAjzzMusLcCnu6WyhZPrF6e5G71MWjNJVfs6u9csg';
         var ext2 = 'xpub6FKKCwdfD85eHmKn7d3mmbhqsHnGkB2n7Hmre29gbnR1cR4U1wrtf2akh1VVqjcTdfkxmwPjQyYPhLLgwBijfFPAYqTZzcjj4awB1BMUxq2';
-        var int1 = 'xpub661MyMwAqRbcF1zGijBb2K6x9YiJPh58xpcCeLvTxMX6spkY3PcpJ4ABcCyWfskq5DDxM3e6Ez5ePCqG5bnPUXR4wL8TZWyoDaUdiWW7bKy';
+
+        //changed
+        var int1 = 'xpub6E681U8qj5mSgpu74PVFFvH7vZMM6GmkCoMkrhmNFGNj9uydN8tjGsC3DZYRjMEybJk2wBZtFaWvxpGyW7NUgCxwDNizZThjat47zEgjSZg';
+        url = 'https://explorer.zensystem.io/insight-api-zen/'
+        tx_request = 'tx/'
+        block_request = 'blocks/';
+        prev_index = 0
+        tx_hash = '6b72d99239f092e9c0c0009d4e0efcf3db9a6b0e8d40fb72ca18c6b098ac1833';
+
+
+
+
+        var xmlHttpTx = new XMLHttpRequest();
+        xmlHttpTx.open( "GET", (url+tx_request+tx_hash), false ); // false for synchronous request
+        xmlHttpTx.send( null );
+        // console.log(JSON.parse(xmlHttpTx.responseText)['vout'][prev_index]['scriptPubKey']['hex']);
+        prev_input_script = JSON.parse(xmlHttpTx.responseText)['vout'][prev_index]['scriptPubKey']['hex'];
+
+
+        var xmlHttpBlock = new XMLHttpRequest();
+        xmlHttpBlock.open( "GET", (url+block_request), false ); // false for synchronous request
+        xmlHttpBlock.send( null );
+        block = JSON.parse(xmlHttpBlock.responseText)['blocks'][199]
+        block_hash = flipBytes(block['hash']);
+        block_height = flipBytes(parseInt(block['height']).toString(16))
+        console.log(block_hash,block_height)
 
         //spend a multisig input
         var inputs;
@@ -21,8 +59,8 @@
             inputs = [
                 {
                     address_n: [1],
-                    prev_index: 1,
-                    prev_hash: 'c6091adf4c0c23982a35899a6e58ae11e703eacd7954f588ed4b9cdefc4dba52',
+                    prev_index: prev_index,
+                    prev_hash: tx_hash,
                     script_type: 'SPENDMULTISIG',
                     multisig: {
                         pubkeys: [
@@ -39,8 +77,8 @@
             inputs = [
                 {
                     address_n: [3],
-                    prev_index: 1,
-                    prev_hash: 'c6091adf4c0c23982a35899a6e58ae11e703eacd7954f588ed4b9cdefc4dba52',
+                    prev_index: prev_index,
+                    prev_hash: tx_hash,
                     script_type: 'SPENDMULTISIG',
                     multisig: {
                         pubkeys: [
@@ -58,8 +96,10 @@
         // send to PAYTOADDRESS output
         var outputs = [{
             script_type: 'PAYTOADDRESS',
-            amount: 100000,
-            address: '12iyMbUb4R2K3gre4dHSrbu5azG5KaqVss'
+            amount: 2000,
+            address: 'znhyGnfCgxd9NyUUDkEwTsBFc4dyYaogYJh',
+            block_hash: block_hash,
+            block_height : block_height
         }];
 
         TrezorConnect.signTx(inputs, outputs, function (response) {
